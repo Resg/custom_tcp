@@ -59,39 +59,65 @@ void ListeningSocket(int new_fd) {
             send(new_fd, "1", 1, 0);
             break;
         }
+        else {
+            if (send(new_fd, "0", 1, 0) == -1)
+                perror("send");
+        }
     }
 
-    while(packeges){
+    for (int i = 0; i < packeges; i++) {
         while (true) {
             memset(headBuf, 0, HEADERSIZE + HASHSIZE);
             if (recv(new_fd, headBuf, HEADERSIZE + HASHSIZE, 0) == -1)
             {
                 perror("recv");
             }
-
+//            for (int ivan = 0; ivan < HEADERSIZE + HASHSIZE; ivan++) {
+//                std::cout << int (headBuf[ivan]);
+//            }
             //sleep(10);
             if (CheckMsg(headBuf, HEADERSIZE)) {
-                send(new_fd, "1", 1, 0);
+                if (send(new_fd, "1", 1, 0) == -1)
+                    perror("send");
                 break;
             }
-            std::cout << "хуй";
+            else {
+                if (send(new_fd, "0", 1, 0) == -1)
+                    perror("send");
+            }
+            //std::cout << "хуй";
 
         }
         int length = atoi(headBuf);
-        memset(buf, 0, MAXDATASIZE);
         std::cout << "Package length: " << length << std::endl;
-        if (recv(new_fd, buf, length, 0) == -1)
-        {
-            std::cout << "хуй\n";
-            perror("recv");
-            continue;
+        while (true) {
+            memset(buf, 0, MAXDATASIZE + HASHSIZE);
+            if (recv(new_fd, buf, length + HASHSIZE, 0) == -1)
+            {
+                std::cout << "хуй\n";
+                perror("recv");
+                break;
+            }
+//            for (int i = 0; i < length + HASHSIZE; i++) {
+//                std::cout << int(buf[i]) << '\n';
+//            }
+            if (CheckMsg(buf, length)) {
+                if (send(new_fd, "1", 1, 0) == -1)
+                    perror("send");
+                break;
+
+            }
+            else {
+                if (send(new_fd, "0", 1, 0) == -1)
+                    perror("send");
+            }
         }
         std::cout << "Package: ";
         for (int i = 0; i < length; i++) {
             std::cout << buf[i];
         }
         std::cout << std::endl;
-        packeges--;
+
     }
     close(new_fd);
 }

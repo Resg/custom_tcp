@@ -88,9 +88,9 @@ std::vector<char> MakeMsg(const char* msg, int len) {
 
 void sendMSG(int sockfd, std::string msg) {
     int packeges = (msg.size()) / MAXDATASIZE;
-    std::vector<char> msgVec;
     if ((msg.size()) % MAXDATASIZE)
         packeges++;
+    std::vector<char> msgVec;
     char HeadBuf[HEADERSIZE + HASHSIZE];
     memset(HeadBuf, 0, HEADERSIZE + HASHSIZE);
     itoa(packeges, HeadBuf);
@@ -115,20 +115,57 @@ void sendMSG(int sockfd, std::string msg) {
     usleep(100);
     for (int i = 0; i < packeges; i++) {
         if (i < packeges - 1) {
-            if (send(sockfd, "0064", HEADERSIZE, 0) == -1)
-            {
-                perror("recv");
-                break;
+            //memset(HeadBuf, 0, HEADERSIZE + HASHSIZE);
+            //itoa(msg.size() % MAXDATASIZE, HeadBuf);
+            msgVec = MakeMsg("0064", HEADERSIZE);
+            std::string _msg;
+            for (auto &iter : msgVec) {
+                //std::cout << int(iter) << '|';
+                _msg.push_back(iter);
             }
+            bufbool[0] = 0;
+            while (!bufbool[0]) {
+                if (send(sockfd,  _msg.c_str(), HEADERSIZE + HASHSIZE, 0) == -1) {
+                    perror("recv");
+
+                }
+                usleep(100);
+                if (recv(sockfd, bufbool, 1, 0) == -1)
+                {
+                    perror("recv");
+                }
+                bufbool[0] = atoi(bufbool);
+            }
+//            if (send(sockfd, "0064", HEADERSIZE, 0) == -1)
+//            {
+//                perror("recv");
+//                break;
+//            }
             usleep(100);
-            if (send(sockfd, msg.substr(i * MAXDATASIZE, (i + 1) * MAXDATASIZE).c_str(),
-                     MAXDATASIZE, 0) == -1) {
-                perror("recv");
-                break;
+            bufbool[0] = 0;
+            msgVec.clear();
+            msgVec = MakeMsg(msg.substr(i * MAXDATASIZE, (i + 1) * MAXDATASIZE).c_str(), MAXDATASIZE);
+            _msg.clear();
+            for (auto &iter : msgVec) {
+                //std::cout << int(iter) << '\n';
+                _msg.push_back(iter);
+            }
+            while (!bufbool[0]) {
+                if (send(sockfd, _msg.c_str(), MAXDATASIZE + HASHSIZE, 0) == -1) {
+                    perror("recv");
+                }
+                usleep(100);
+                if (recv(sockfd, bufbool, 1, 0) == -1)
+                {
+                    perror("recv");
+                }
+                bufbool[0] = atoi(bufbool);
+                //std::cout << bufbool[0] << '\n';
             }
         }
         else {
             if (msg.size() % MAXDATASIZE) {
+
                 memset(HeadBuf, 0, HEADERSIZE + HASHSIZE);
                 itoa(msg.size() % MAXDATASIZE, HeadBuf);
                 msgVec = MakeMsg(HeadBuf, HEADERSIZE);
@@ -137,43 +174,87 @@ void sendMSG(int sockfd, std::string msg) {
                     //std::cout << int(iter) << '|';
                     _msg.push_back(iter);
                 }
+                bufbool[0] = 0;
                 while (!bufbool[0]) {
                     if (send(sockfd,  _msg.c_str(), HEADERSIZE + HASHSIZE, 0) == -1) {
                         perror("recv");
 
                     }
+                    usleep(100);
                     if (recv(sockfd, bufbool, 1, 0) == -1)
                     {
                         perror("recv");
                     }
                     bufbool[0] = atoi(bufbool);
                 }
-
+                bufbool[0] = 0;
                 usleep(100);
-                if (send(sockfd,
-                         msg.substr(i * MAXDATASIZE, i * MAXDATASIZE + msg.size() % MAXDATASIZE).c_str(),
-                         msg.size() % MAXDATASIZE,
-                         0) == -1) {
-                    perror("recv");
-                    break;
+
+                msgVec.clear();
+                msgVec = MakeMsg(msg.substr(i * MAXDATASIZE, i * MAXDATASIZE + msg.size() % MAXDATASIZE).c_str(), msg.size() % MAXDATASIZE);
+                _msg.clear();
+                for (auto &iter : msgVec) {
+                    //std::cout << int(iter) << '\n';
+                    _msg.push_back(iter);
+                }
+                while (!bufbool[0]) {
+                    if (send(sockfd, _msg.c_str(), msg.size() % MAXDATASIZE + HASHSIZE, 0) == -1) {
+                        perror("recv");
+                    }
+                    usleep(100);
+                    if (recv(sockfd, bufbool, 1, 0) == -1)
+                    {
+                        perror("recv");
+                    }
+                    bufbool[0] = atoi(bufbool);
+                    //std::cout << bufbool[0] << '\n';
                 }
             }
             else {
-                if (send(sockfd, "64", HEADERSIZE, 0) == -1)
-                {
-                    perror("recv");
-                    break;
+                msgVec = MakeMsg("0064", HEADERSIZE);
+                std::string _msg;
+                for (auto &iter : msgVec) {
+                    //std::cout << int(iter) << '|';
+                    _msg.push_back(iter);
+                }
+                bufbool[0] = 0;
+                while (!bufbool[0]) {
+                    if (send(sockfd,  _msg.c_str(), HEADERSIZE + HASHSIZE, 0) == -1) {
+                        perror("recv");
+
+                    }
+                    usleep(100);
+                    if (recv(sockfd, bufbool, 1, 0) == -1)
+                    {
+                        perror("recv");
+                    }
+                    bufbool[0] = atoi(bufbool);
                 }
                 usleep(100);
-                if (send(sockfd, msg.substr(i * MAXDATASIZE, (i + 1) * MAXDATASIZE).c_str(),
-                         MAXDATASIZE, 0) == -1) {
-                    perror("recv");
-                    break;
+                bufbool[0] = 0;
+                msgVec.clear();
+                msgVec = MakeMsg(msg.substr(i * MAXDATASIZE, (i + 1) * MAXDATASIZE).c_str(), MAXDATASIZE);
+                _msg.clear();
+                for (auto &iter : msgVec) {
+                    //std::cout << int(iter) << '\n';
+                    _msg.push_back(iter);
+                }
+                while (!bufbool[0]) {
+                    if (send(sockfd, _msg.c_str(), MAXDATASIZE + HASHSIZE, 0) == -1) {
+                        perror("recv");
+                    }
+                    usleep(100);
+                    if (recv(sockfd, bufbool, 1, 0) == -1)
+                    {
+                        perror("recv");
+                    }
+                    bufbool[0] = atoi(bufbool);
+                    //std::cout << bufbool[0] << '\n';
                 }
             }
 
        }
-       usleep(100);
+       usleep(1000);
     }
 }
 
